@@ -76,23 +76,6 @@ class Translator {
       );
     }
 
-    // text2LowerCase = text2LowerCase.split(" ");
-    // let newText = text
-    //   .split(" ")
-    //   .map((word, i) => {
-    //     if (word.toLowerCase() === text2LowerCase[i]) {
-    //       return word;
-    //     } else {
-    //       if (/[A-Z]/.test(word[0])) {
-    //         const firstLetter = text2LowerCase[i].charAt(0).toUpperCase();
-    //         text2LowerCase[i] = firstLetter + text2LowerCase[i].slice(1);
-    //         return `<span class="highlight">${text2LowerCase[i]}</span>`;
-    //       }
-    //       return;
-    //     }
-    //   })
-    //   .join(" ");
-
     if (newText === text) {
       return false;
     }
@@ -159,31 +142,15 @@ class Translator {
       );
     });
 
-    if (/[0-9]+:[0-9]+/.test(newText)) {
-      let [, hour, min] = newText.match(/([0-9]+):([0-9]+)/);
+    if (/[0-9]+\.[0-9]+/.test(newText)) {
+      let [, hour, min] = newText.match(/([0-9]+)\.([0-9]+)/);
 
       newText = newText.replace(
-        /[0-9]+:[0-9]+/,
-        `<span class="highlight">${hour}.${min}</span>`
+        /[0-9]+\.[0-9]+/,
+        `<span class="highlight">${hour}:${min}</span>`
       );
+      console.log(newText);
     }
-
-    // text2LowerCase = text2LowerCase.split(" ");
-    // let newText = text
-    //   .split(" ")
-    //   .map((word, i) => {
-    //     if (word.toLowerCase() === text2LowerCase[i]) {
-    //       return word;
-    //     } else {
-    //       if (/[A-Z]/.test(word[0])) {
-    //         const firstLetter = text2LowerCase[i].charAt(0).toUpperCase();
-    //         text2LowerCase[i] = firstLetter + text2LowerCase[i].slice(1);
-    //         return `<span class="highlight">${text2LowerCase[i]}</span>`;
-    //       }
-    //       return `<span class="highlight">${text2LowerCase[i]}</span>`;
-    //     }
-    //   })
-    //   .join(" ");
 
     if (newText === text) {
       return false;
