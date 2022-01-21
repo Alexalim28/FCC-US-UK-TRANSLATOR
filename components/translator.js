@@ -8,7 +8,10 @@ class Translator {
     let text2LowerCase = text.toLowerCase();
 
     for (let word in americanOnly) {
-      text2LowerCase = text2LowerCase.replace(word, americanOnly[word]);
+      const regex = new RegExp(`(?<=^|\\s)${word}(?=\\.|\\s)`);
+      const searchedWord =
+        text2LowerCase.match(regex) && text2LowerCase.match(regex)[0];
+      text2LowerCase = text2LowerCase.replace(searchedWord, americanOnly[word]);
     }
 
     for (let title in americanToBritishTitles) {
@@ -26,7 +29,7 @@ class Translator {
     }
 
     text2LowerCase = text2LowerCase.split(" ");
-    text = text
+    let newText = text
       .split(" ")
       .map((word, i) => {
         if (word.toLowerCase() === text2LowerCase[i]) {
@@ -42,26 +45,70 @@ class Translator {
       })
       .join(" ");
 
-    if (/[0-9]+:[0-9]+/.test(text)) {
-      let [, hour, min] = text.match(/([0-9]+):([0-9]+)/);
+    if (/[0-9]+:[0-9]+/.test(newText)) {
+      let [, hour, min] = newText.match(/([0-9]+):([0-9]+)/);
 
-      text = text.replace(
+      newText = newText.replace(
         /[0-9]+:[0-9]+/,
         `<span class="highlight">${hour}.${min}</span>`
       );
-      console.log(hour, min);
     }
-    return text;
+    if (newText === text) {
+      return false;
+    }
+    return newText;
   }
 
   uk2Us(text) {
-    if (text in americanToBritishTitles) {
-      return `<span class="highlight">${americanToBritishTitles[text]}</span>`;
-    }
+    let text2LowerCase = text.toLowerCase();
 
-    if (/[0-9]+.[0-9]+/.test(text)) {
-      return `<span class="highlight">${text.replace(".", ":")}</span>`;
+    for (let word in britishOnly) {
+      const regex = new RegExp(`(?<=^|\\s)${word}(?=\\.|\\s)`);
+      const searchedWord =
+        text2LowerCase.match(regex) && text2LowerCase.match(regex)[0];
+      text2LowerCase = text2LowerCase.replace(searchedWord, britishOnly[word]);
     }
+    console.log(text2LowerCase);
+
+    Object.entries(americanToBritishTitles).forEach((title) => {
+      const regex = new RegExp(`\\b${title[1]}\\b`);
+      text2LowerCase = text2LowerCase.replace(regex, title[0]);
+    });
+
+    Object.entries(americanToBritishSpelling).forEach((spelling) => {
+      const regex = new RegExp(`\\b${spelling[1]}\\b`);
+      text2LowerCase = text2LowerCase.replace(spelling[1], spelling[0]);
+    });
+
+    text2LowerCase = text2LowerCase.split(" ");
+    let newText = text
+      .split(" ")
+      .map((word, i) => {
+        if (word.toLowerCase() === text2LowerCase[i]) {
+          return word;
+        } else {
+          if (/[A-Z]/.test(word[0])) {
+            const firstLetter = text2LowerCase[i].charAt(0).toUpperCase();
+            text2LowerCase[i] = firstLetter + text2LowerCase[i].slice(1);
+            return `<span class="highlight">${text2LowerCase[i]}</span>`;
+          }
+          return `<span class="highlight">${text2LowerCase[i]}</span>`;
+        }
+      })
+      .join(" ");
+
+    if (/[0-9]+:[0-9]+/.test(newText)) {
+      let [, hour, min] = newText.match(/([0-9]+):([0-9]+)/);
+
+      newText = newText.replace(
+        /[0-9]+:[0-9]+/,
+        `<span class="highlight">${hour}.${min}</span>`
+      );
+    }
+    if (newText === text) {
+      return false;
+    }
+    return newText;
   }
 }
 

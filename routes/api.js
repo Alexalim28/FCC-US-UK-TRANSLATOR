@@ -8,7 +8,7 @@ module.exports = function (app) {
   app.route("/api/translate").post((req, res) => {
     const { text, locale } = req.body;
 
-    if (text === undefined || locale === undefined) {
+    if (text === undefined || !locale) {
       return res.json({ error: "Required field(s) missing" });
     }
 
