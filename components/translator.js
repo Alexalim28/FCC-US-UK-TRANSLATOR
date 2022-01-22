@@ -4,46 +4,58 @@ const americanToBritishTitles = require("./american-to-british-titles.js");
 const britishOnly = require("./british-only.js");
 
 class Translator {
+  translate(text, translatedText, dict) {
+    for (let word in dict) {
+      let translatedWord;
+
+      const regex = new RegExp(`(?<=^|\\s)${word}(?=\\.|\\s)`, "i");
+      const searchedWord = text.match(regex) && text.match(regex)[0];
+      if (
+        searchedWord &&
+        searchedWord.charAt(0) === searchedWord.charAt(0).toUpperCase()
+      ) {
+        translatedWord =
+          dict[word].charAt(0).toUpperCase() + dict[word].slice(1);
+      } else {
+        translatedWord = dict[word];
+      }
+      text = text.replace(
+        searchedWord,
+        `<span class="highlight">${translatedWord}</span>`
+      );
+      translatedText = translatedText.replace(searchedWord, translatedWord);
+    }
+    return [text, translatedText];
+  }
+
+  reverseDict(obj) {
+    let dict = {};
+    Object.entries(obj).forEach((title) => {
+      dict[title[1]] = title[0];
+    });
+    return dict;
+  }
+
   us2Uk(text) {
-    let text2LowerCase = text.toLowerCase();
+    let notTranslatedText = text;
 
-    for (let word in americanOnly) {
-      const regex = new RegExp(`(?<=^|\\s)${word}(?=\\.|\\s)`);
-      const searchedWord =
-        text2LowerCase.match(regex) && text2LowerCase.match(regex)[0];
-      text2LowerCase = text2LowerCase.replace(searchedWord, americanOnly[word]);
-    }
+    let [newText, translatedText] = this.translate(
+      text,
+      notTranslatedText,
+      americanOnly
+    );
 
-    for (let title in americanToBritishTitles) {
-      text2LowerCase = text2LowerCase.replace(
-        title,
-        americanToBritishTitles[title]
-      );
-    }
+    [newText, translatedText] = this.translate(
+      newText,
+      translatedText,
+      americanToBritishTitles
+    );
 
-    for (let spelling in americanToBritishSpelling) {
-      text2LowerCase = text2LowerCase.replace(
-        spelling,
-        americanToBritishSpelling[spelling]
-      );
-    }
-
-    text2LowerCase = text2LowerCase.split(" ");
-    let newText = text
-      .split(" ")
-      .map((word, i) => {
-        if (word.toLowerCase() === text2LowerCase[i]) {
-          return word;
-        } else {
-          if (/[A-Z]/.test(word[0])) {
-            const firstLetter = text2LowerCase[i].charAt(0).toUpperCase();
-            text2LowerCase[i] = firstLetter + text2LowerCase[i].slice(1);
-            return `<span class="highlight">${text2LowerCase[i]}</span>`;
-          }
-          return `<span class="highlight">${text2LowerCase[i]}</span>`;
-        }
-      })
-      .join(" ");
+    [newText, translatedText] = this.translate(
+      newText,
+      translatedText,
+      americanToBritishSpelling
+    );
 
     if (/[0-9]+:[0-9]+/.test(newText)) {
       let [, hour, min] = newText.match(/([0-9]+):([0-9]+)/);
@@ -52,63 +64,61 @@ class Translator {
         /[0-9]+:[0-9]+/,
         `<span class="highlight">${hour}.${min}</span>`
       );
+
+      translatedText = translatedText.replace(
+        /[0-9]+:[0-9]+/,
+        `${hour}.${min}`
+      );
     }
+
     if (newText === text) {
       return false;
     }
-    return newText;
+    return [newText, translatedText];
   }
 
   uk2Us(text) {
-    let text2LowerCase = text.toLowerCase();
+    let notTranslatedText = text;
 
-    for (let word in britishOnly) {
-      const regex = new RegExp(`(?<=^|\\s)${word}(?=\\.|\\s)`);
-      const searchedWord =
-        text2LowerCase.match(regex) && text2LowerCase.match(regex)[0];
-      text2LowerCase = text2LowerCase.replace(searchedWord, britishOnly[word]);
-    }
-    console.log(text2LowerCase);
+    let [newText, translatedText] = this.translate(
+      text,
+      notTranslatedText,
+      britishOnly
+    );
 
-    Object.entries(americanToBritishTitles).forEach((title) => {
-      const regex = new RegExp(`\\b${title[1]}\\b`);
-      text2LowerCase = text2LowerCase.replace(regex, title[0]);
-    });
+    const britishToAmericanTitles = this.reverseDict(americanToBritishTitles);
+    [newText, translatedText] = this.translate(
+      newText,
+      translatedText,
+      britishToAmericanTitles
+    );
 
-    Object.entries(americanToBritishSpelling).forEach((spelling) => {
-      const regex = new RegExp(`\\b${spelling[1]}\\b`);
-      text2LowerCase = text2LowerCase.replace(spelling[1], spelling[0]);
-    });
+    const britishSpellingToAmerican = this.reverseDict(
+      americanToBritishSpelling
+    );
+    [newText, translatedText] = this.translate(
+      newText,
+      translatedText,
+      britishSpellingToAmerican
+    );
 
-    text2LowerCase = text2LowerCase.split(" ");
-    let newText = text
-      .split(" ")
-      .map((word, i) => {
-        if (word.toLowerCase() === text2LowerCase[i]) {
-          return word;
-        } else {
-          if (/[A-Z]/.test(word[0])) {
-            const firstLetter = text2LowerCase[i].charAt(0).toUpperCase();
-            text2LowerCase[i] = firstLetter + text2LowerCase[i].slice(1);
-            return `<span class="highlight">${text2LowerCase[i]}</span>`;
-          }
-          return `<span class="highlight">${text2LowerCase[i]}</span>`;
-        }
-      })
-      .join(" ");
-
-    if (/[0-9]+:[0-9]+/.test(newText)) {
-      let [, hour, min] = newText.match(/([0-9]+):([0-9]+)/);
+    if (/[0-9]+\.[0-9]+/.test(newText)) {
+      let [, hour, min] = newText.match(/([0-9]+)\.([0-9]+)/);
 
       newText = newText.replace(
-        /[0-9]+:[0-9]+/,
-        `<span class="highlight">${hour}.${min}</span>`
+        /[0-9]+\.[0-9]+/,
+        `<span class="highlight">${hour}:${min}</span>`
+      );
+
+      translatedText = translatedText.replace(
+        /[0-9]+\.[0-9]+/,
+        `${hour}:${min}`
       );
     }
     if (newText === text) {
       return false;
     }
-    return newText;
+    return [newText, translatedText];
   }
 }
 
