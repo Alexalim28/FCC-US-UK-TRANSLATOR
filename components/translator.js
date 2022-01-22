@@ -64,6 +64,7 @@ class Translator {
         /[0-9]+:[0-9]+/,
         `<span class="highlight">${hour}.${min}</span>`
       );
+
       translatedText = translatedText.replace(
         /[0-9]+:[0-9]+/,
         `${hour}.${min}`
@@ -103,16 +104,17 @@ class Translator {
 
     if (/[0-9]+\.[0-9]+/.test(newText)) {
       let [, hour, min] = newText.match(/([0-9]+)\.([0-9]+)/);
+
       newText = newText.replace(
         /[0-9]+\.[0-9]+/,
         `<span class="highlight">${hour}:${min}</span>`
       );
+
       translatedText = translatedText.replace(
         /[0-9]+\.[0-9]+/,
         `${hour}:${min}`
       );
     }
-
     if (newText === text) {
       return false;
     }
