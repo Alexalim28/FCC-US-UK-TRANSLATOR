@@ -28,6 +28,6 @@ module.exports = function (app) {
     if (!translation) {
       return res.json({ text, translation: "Everything looks good to me!" });
     }
-    res.json({ text, translation });
+    res.json({ text, translation: translation[0] });
   });
 };
